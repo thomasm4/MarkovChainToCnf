@@ -3,7 +3,8 @@ from pysat.formula import Formula, Atom, Or, Neg, CNF
 from pysat.solvers import Solver
 from pysat.pb import PBEnc
 #from stormpy import *
-import argparse
+import sys
+import os
 
 import stormpy
 from import_transitions import readFromArgs, Transition, Chain
@@ -12,12 +13,25 @@ from import_transitions import readFromArgs, Transition, Chain
 #outputFile = "test.cnf" #"die.cnf"
 #goalState = 10
 
+def groupTransitions(transitions: list[Transition]):
+    groups = [list(g) for k, g in groupby(transitions, key=lambda t: t.start)]
+    for group in groups:
+        group[0].isPositive = True
+        if(len(group) == 2):
+            group[1].isPositive = False
+        elif(len(group) > 2):
+            for tra in group:
+                print(vars(tra))
+            raise Exception(f'states with more than 2 transitions are not supported')
 
 def stateAtom(state, step):
     return Atom(f'X{state}_{step}')
 
 def transAtom(tra: Transition, step):
-    return Atom(f'C{tra.start}_{tra.end}_{step}')
+    transition = Atom(f'C{tra.start}_{step}')
+    if not tra.isPositive:
+        transition = Neg(transition)
+    return transition
 
 def transtitionToFormulas(tra: Transition, steps: int = 1):
     clauses = []
@@ -49,59 +63,6 @@ def stateExclusionClauses(states, steps: int = 1):
                 clauses.append(clause.clauses[0])
     return clauses
 
-def transExclusionClauses(trans: list[Transition], steps: int = 1):
-    clauses = []
-    groups = [list(g) for k, g in groupby(trans, key=lambda t: t.start)] # GROUP BY DOES NOT WORK ON UNSORTED
-    for group in groups:
-        for s in range(steps):
-            for i in range(len(group)-1):
-                for j in range(i+1, len(group)):
-                    tra1 = group[i]
-                    tra2 = group[j]
-                    #Implies(stateAtom(tra1, s), Neg(stateAtom(tra2, s)))
-                    clause = Or(Neg(transAtom(tra1, s)), Neg(transAtom(tra2, s)))
-                    clause.clausify()
-                    clauses.append(clause.clauses[0])
-    return clauses
-
-def oneStateClauses(states, steps: int = 1):
-    clauses = []
-    for s in range(steps + 1):
-        clause = []
-        for state in states:
-            atom = stateAtom(state, s)
-            atom.clausify()
-            clause.append(atom.clauses[0][0])
-        clauses.append(clause)
-    return clauses
-
-def requireStateClauses(trans, steps):
-    clauses = []
-    
-    for tra in trans:
-        for s in range(steps):
-            #Implies(Neg(stateAtom(tra.start, s)), Neg(transAtom(tra, s)))
-            clause = Or(stateAtom(tra.start, s), Neg(transAtom(tra, s)))
-            print(clause)
-            clause.clausify()
-            clauses.append(clause.clauses[0])
-    return clauses
-
-def requireTransClauses(trans: list[Transition], states, steps):
-    clauses = []
-    for state in states:
-        #print(group)
-        for s in range(steps):
-            #Implies(Neg(stateAtom(tra.end, s)), *(transAtom(tra, s)))
-            filtered = filter(lambda t: t.end == state, trans)
-            transAtoms = [transAtom(tra, s) for tra in filtered]
-            print(transAtoms)
-            clause = Or(Neg(stateAtom(state, s)), *transAtoms)
-            clause.clausify()
-            clauses.append(clause.clauses[0])
-    return clauses
-
-
 def goalClause(goalStates, steps: int = 1):
     goals = []
     for goal in goalStates:
@@ -130,23 +91,14 @@ def makeCNF(transitions: list[Transition], states, initialState, goalstates, out
     formula.append(goalClause(goalstates, steps))
 
     formula.extend(stateExclusionClauses(states, steps))
-    formula.extend(oneStateClauses(states, steps))
-    #formula.extend(transExclusionClauses(transitions, steps))
-    formula.extend(requireStateClauses(transitions, steps))
-    formula.extend(requireTransClauses(transitions, states, steps))
 
     cnf = CNF(from_clauses=formula)
     cnf.to_file(outputFile)
     addWeights(transitions, outputFile, steps)
     print(Formula.export_vpool().id2obj)
 
-
 chain = readFromArgs()
 
-#for state in chain.states:
-#    print(state)
-#    print(f'{state}')
-
-#groupTransitions(transitions)
+groupTransitions(chain.transitions)
 makeCNF(chain.transitions, chain.states, chain.start_state, chain.goal_states, chain.output_file, chain.steps)
 

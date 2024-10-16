@@ -6,7 +6,7 @@ from pysat.pb import PBEnc
 import argparse
 
 import stormpy
-from import_transitions import readFromArgs, Transition, Chain
+from import_transitions import readFromArgs, readFromParsedArgs, Transition, Chain
 
 #matrixFile = "test.tra" #"lib/stormpy/examples/files/tra/die.tra"
 #outputFile = "test.cnf" #"die.cnf"
@@ -133,6 +133,7 @@ def addWeights(transitions: list[Transition], fileName, steps: int = 1):
             start = transAtom(tra, s)
             name = idPool.obj2id[start]
             f.write(f'c p weight {name} {tra.weight} 0\n')
+            f.write(f'c p weight -{name} 1 0\n')
 
 def makeCNF(transitions: list[Transition], states, initialState, goalstates, outputFile, steps: int = 1):
     formula = allTransitionsToFormula(transitions, steps)
@@ -144,10 +145,7 @@ def makeCNF(transitions: list[Transition], states, initialState, goalstates, out
     formula.append(goalClause(goalstates, steps))
 
     formula.extend(stateExclusionClauses(states, steps))
-    #formula.extend(oneStateClauses(states, steps))
     formula.extend(transExclusionClauses(transitions, steps))
-    #formula.extend(requireStateClauses(transitions, steps))
-    #formula.extend(requireTransClauses(transitions, states, steps))
     formula.extend(oneTransClauses(transitions, states, steps))
 
     cnf = CNF(from_clauses=formula)
@@ -156,7 +154,7 @@ def makeCNF(transitions: list[Transition], states, initialState, goalstates, out
     print(Formula.export_vpool().id2obj)
 
 
-chain = readFromArgs()
+chain = readFromParsedArgs()
 
 #for state in chain.states:
 #    print(state)

@@ -4,7 +4,7 @@ import stormpy
 import sys
 import os
 import argparse
-
+import dataclasses
 
 class Transition:
     def __init__(self, start, end, weight: float):
@@ -16,6 +16,7 @@ class Transition:
     # Only used with max 2 transitions
     isPositive: bool
 
+@dataclasses.dataclass
 class Chain:
     def __init__(self, transitions, states, start_state, goal_states, steps, output_file):
         self.transitions = transitions
@@ -84,19 +85,29 @@ def readFromArgs():
 def readFromParsedArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", required=True, help="The path of the input file")
-    parser.add_argument("-o", "--ouput", required=True, help="The path to output the cnf to")
+    parser.add_argument("-o", "--output", required=True, help="The path to output the cnf to")
     parser.add_argument("-s", "--start", required=True, help="The initial state")
-    parser.add_argument("-g", "--goal", required=True, help="The goal state")
+    parser.add_argument("-g", "--goal", required=False, help="The goal state")
     parser.add_argument("-n", "--steps", required=True, help="The maximum amount of steps to reach the goal states")
+    parser.add_argument("-l", "--label", required=False, help="The label of the goal states. Only works with .pm files")
 
     args = parser.parse_args()
     inputFile = args.input
     outputFile = args.output
     startState = args.start
-    goalState = args.goal
-    N = args.steps
+    goals = [args.goal]
+    N = int(args.steps)
 
     _, extension = os.path.splitext(inputFile)
+    
     transitions, states = readFromFile(inputFile, extension)
-    return Chain(transitions, states, startState, [goalState], N, outputFile)
+
+    if args.label:
+        if extension != ".pm":
+            raise Exception(f'Labels only allowed with .pm files')
+        for state in states:
+            if args.label in state.labels:
+                print(state, state.labels)
+
+    return Chain(transitions, states, startState, goals, N, outputFile)
     

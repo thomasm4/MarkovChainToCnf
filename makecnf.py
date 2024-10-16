@@ -64,44 +64,6 @@ def transExclusionClauses(trans: list[Transition], steps: int = 1):
                     clauses.append(clause.clauses[0])
     return clauses
 
-def oneStateClauses(states, steps: int = 1):
-    clauses = []
-    for s in range(steps + 1):
-        clause = []
-        for state in states:
-            atom = stateAtom(state, s)
-            atom.clausify()
-            clause.append(atom.clauses[0][0])
-        clauses.append(clause)
-    return clauses
-
-def requireStateClauses(trans, steps):
-    clauses = []
-    
-    for tra in trans:
-        for s in range(steps):
-            #Implies(Neg(stateAtom(tra.start, s)), Neg(transAtom(tra, s)))
-            clause = Or(stateAtom(tra.start, s), Neg(transAtom(tra, s)))
-            print(clause)
-            clause.clausify()
-            clauses.append(clause.clauses[0])
-    return clauses
-
-def requireTransClauses(trans: list[Transition], states, steps):
-    clauses = []
-    for state in states:
-        #print(group)
-        for s in range(steps):
-            #Implies((stateAtom(tra.end, s+1)), *(transAtom(tra, s)))
-            filtered = filter(lambda t: t.end == state, trans)
-            transAtoms = [transAtom(tra, s) for tra in filtered]
-            print(transAtoms)
-            for tra in transAtoms:
-                clause = Or(Neg(stateAtom(state, s+1)), tra)
-                clause.clausify()
-                clauses.append(clause.clauses[0])
-    return clauses
-
 def oneTransClauses(trans: list[Transition], states, steps):
     clauses = []
     for state in states:

@@ -92,15 +92,29 @@ def requireTransClauses(trans: list[Transition], states, steps):
     for state in states:
         #print(group)
         for s in range(steps):
-            #Implies(Neg(stateAtom(tra.end, s)), *(transAtom(tra, s)))
+            #Implies((stateAtom(tra.end, s+1)), *(transAtom(tra, s)))
             filtered = filter(lambda t: t.end == state, trans)
             transAtoms = [transAtom(tra, s) for tra in filtered]
             print(transAtoms)
-            clause = Or(Neg(stateAtom(state, s)), *transAtoms)
+            for tra in transAtoms:
+                clause = Or(Neg(stateAtom(state, s+1)), tra)
+                clause.clausify()
+                clauses.append(clause.clauses[0])
+    return clauses
+
+def oneTransClauses(trans: list[Transition], states, steps):
+    clauses = []
+    for state in states:
+        #print(group)
+        for s in range(steps):
+            #Implies((stateAtom(tra.end, s+1)), *(transAtom(tra, s)))
+            filtered = filter(lambda t: t.start == state, trans)
+            transAtoms = [transAtom(tra, s) for tra in filtered]
+            print(transAtoms)
+            clause = Or(*transAtoms)
             clause.clausify()
             clauses.append(clause.clauses[0])
     return clauses
-
 
 def goalClause(goalStates, steps: int = 1):
     goals = []
@@ -130,10 +144,11 @@ def makeCNF(transitions: list[Transition], states, initialState, goalstates, out
     formula.append(goalClause(goalstates, steps))
 
     formula.extend(stateExclusionClauses(states, steps))
-    formula.extend(oneStateClauses(states, steps))
-    #formula.extend(transExclusionClauses(transitions, steps))
-    formula.extend(requireStateClauses(transitions, steps))
-    formula.extend(requireTransClauses(transitions, states, steps))
+    #formula.extend(oneStateClauses(states, steps))
+    formula.extend(transExclusionClauses(transitions, steps))
+    #formula.extend(requireStateClauses(transitions, steps))
+    #formula.extend(requireTransClauses(transitions, states, steps))
+    formula.extend(oneTransClauses(transitions, states, steps))
 
     cnf = CNF(from_clauses=formula)
     cnf.to_file(outputFile)

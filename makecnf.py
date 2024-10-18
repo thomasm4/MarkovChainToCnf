@@ -67,12 +67,10 @@ def transExclusionClauses(trans: list[Transition], steps: int = 1):
 def oneTransClauses(trans: list[Transition], states, steps):
     clauses = []
     for state in states:
-        #print(group)
         for s in range(steps):
             #Implies((stateAtom(tra.end, s+1)), *(transAtom(tra, s)))
             filtered = filter(lambda t: t.start == state, trans)
             transAtoms = [transAtom(tra, s) for tra in filtered]
-            print(transAtoms)
             clause = Or(*transAtoms)
             clause.clausify()
             clauses.append(clause.clauses[0])
@@ -113,7 +111,7 @@ def makeCNF(transitions: list[Transition], states, initialState, goalstates, out
     cnf = CNF(from_clauses=formula)
     cnf.to_file(outputFile)
     addWeights(transitions, outputFile, steps)
-    print(Formula.export_vpool().id2obj)
+    #print(Formula.export_vpool().id2obj)
 
 
 chain = readFromParsedArgs()

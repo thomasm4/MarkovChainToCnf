@@ -5,11 +5,12 @@ import sys
 import os
 import argparse
 import dataclasses
+from pprint import pprint
 
 class Transition:
     def __init__(self, start, end, weight: float):
-        self.start = start
-        self.end = end
+        self.start = f'{start}'
+        self.end = f'{end}'
         self.weight = weight
     
     # Property indicating if transition is C{start}_{step} or Neg(C{start}_{step})
@@ -38,34 +39,38 @@ def readFromTra(fileName: str):
     transitions = [fromLine(line.rstrip('\n')) for line in lines]
 
     states = list(dict.fromkeys([tra.start for tra in transitions] + [tra.end for tra in transitions]))
-    return transitions, states
+    return transitions, states, []
 
-def readFromPm(filename: str):
+def readFromPm(filename: str, label = None):
     model = stormpy.parse_prism_program(filename)
     dtmc = stormpy.build_sparse_model(model)
 
     matrix = dtmc.transition_matrix
-    states = dtmc.states
+    
     transitions = []
-    print(states)
 
+    states = dtmc.states
+
+    stringifiedStates = []
+    goals = []
     for s in states:
+        stringified = f'{s}'
+        if label in s.labels:
+            goals.append(stringified)
+        stringifiedStates.append(stringified)
         row = matrix.get_row(s)
         for entry in row:
-            transitions.append(Transition(f'{s}', entry.column, entry.value()))
+            transitions.append(Transition(stringified, entry.column, entry.value()))
 
-    return transitions, states
+    return transitions, stringifiedStates, goals
 
-    # get state labeling of dtmc
-    #for state in dtmc.states:
-    #    if sys.argv[2] in state.labels:
-    #        print(state, state.labels)
+    
         
-def readFromFile(path, extension):
+def readFromFile(path, extension, label = None):
     if extension == '.tra':
         return readFromTra(path)
     elif extension == '.pm':
-        return readFromPm(path)
+        return readFromPm(path, label)
     else:
         raise Exception(f'Unknown extension')
     
@@ -95,19 +100,17 @@ def readFromParsedArgs():
     inputFile = args.input
     outputFile = args.output
     startState = args.start
-    goals = [args.goal]
     N = int(args.steps)
 
     _, extension = os.path.splitext(inputFile)
     
-    transitions, states = readFromFile(inputFile, extension)
-
-    if args.label:
-        if extension != ".pm":
-            raise Exception(f'Labels only allowed with .pm files')
-        for state in states:
-            if args.label in state.labels:
-                print(state, state.labels)
+    transitions, states, goals = readFromFile(inputFile, extension, args.label)
+    
+    if args.goal:
+        goals = [args.goal]
+    print(states)
+    print(goals)
+        
 
     return Chain(transitions, states, startState, goals, N, outputFile)
     

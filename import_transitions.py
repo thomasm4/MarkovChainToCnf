@@ -108,8 +108,8 @@ def readFromParsedArgs():
     
     if args.goal:
         goals = [args.goal]
-    print(states)
-    print(goals)
+    #print(states)
+    #print(goals)
         
 
     return Chain(transitions, states, startState, goals, N, outputFile)

@@ -12,6 +12,7 @@ from import_transitions import readFromParsedArgs, Transition, Chain
 
 
 # Variation of the memory version, instead only calculating the first step deriving the other steps through addition and multiplication.
+# Instead of the default multiplication version this version retains the order that was used in the older algorithm.
 
 atomMap : dict
 mapSize : int
@@ -32,7 +33,7 @@ def getState(state, step) -> int:
 
 def getTransition(transition, step) -> int:
     return atomMap[f'{transition.start}_{transition.end}'] + (step*mapSize)
-
+    
 def generateIffFormula(trans: list[Transition], states, s: int = 1):
     clauses = []
     for state in states:
@@ -109,14 +110,29 @@ def makeCNF(transitions: list[Transition], states, initialState, goalstates, out
 
     fillMap(transitions, states)
 
-    formula1 = []
-    formula1.extend(generateIffFormula(transitions, states, 0))
-    formula1.extend(stateImpliesTrans(transitions, 0))
-    formula1.extend(transExclusionClauses(transitions, 0))
-    formula1.extend(oneTransClauses(transitions, states, 0))
-    formula = formula1.copy()
+    formula = []
+    clauses = generateIffFormula(transitions, states, 0)
+    formula.extend(clauses)
     for s in range(1, steps):
-        for clause in formula1:
+        for clause in clauses:
+            formula.append([x + int(math.copysign(s*mapSize, x)) for x in clause])
+
+    clauses = stateImpliesTrans(transitions, 0)
+    formula.extend(clauses)
+    for s in range(1, steps):
+        for clause in clauses:
+            formula.append([x + int(math.copysign(s*mapSize, x)) for x in clause])
+        
+    clauses = transExclusionClauses(transitions, 0)
+    formula.extend(clauses)
+    for s in range(1, steps):
+        for clause in clauses:
+            formula.append([x + int(math.copysign(s*mapSize, x)) for x in clause])
+        
+    clauses = oneTransClauses(transitions, states, 0)
+    formula.extend(clauses)
+    for s in range(1, steps):
+        for clause in clauses:
             formula.append([x + int(math.copysign(s*mapSize, x)) for x in clause])
     
     formula.append(goalClause(goalstates, steps))

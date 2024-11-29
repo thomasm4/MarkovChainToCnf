@@ -131,8 +131,8 @@ def addWeights(transitions: list[Transition], file, steps: int = 1):
             file.write(f'c p weight -{name} 1 0\n')
 
 def addProjection(actions, file):
-    #file.write(f'c p show {" ".join(str(getAction(a)) for actionCombo in actions for a in actionCombo)} 0\n')
-    file.write(f'c p show {" ".join(str(x) for x in range(actionStart))} 0\n')
+    file.write(f'c p max {" ".join(str(getAction(a)) for actionCombo in actions for a in actionCombo)} 0\n')
+    #file.write(f'c p show {" ".join(str(x) for x in range(actionStart))} 0\n')
 
 def makeCNF(transitions: list[Transition], actions, states, initialState, goalstates, outputFile, steps: int = 1):
     global actionStart

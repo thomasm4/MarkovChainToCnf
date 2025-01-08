@@ -31,7 +31,6 @@ def readFromMdp(filename: str, label = None):
     mdp = stormpy.build_sparse_model(model)
 
     matrix = mdp.transition_matrix
-    print(matrix)
     
     transitions = []
 
@@ -42,8 +41,6 @@ def readFromMdp(filename: str, label = None):
     actions = [] #
 
     for index, s in enumerate(states):
-        print(f'index:{index}')
-        print(f'state:{s}')
         stringified = f'{s}'
         if label in s.labels:
             goals.append(stringified)
@@ -57,17 +54,53 @@ def readFromMdp(filename: str, label = None):
             row = matrix.get_row(i)
             action = i
             action_combo.append(action)
-            print(row)
             for entry in row:
                 transitions.append(Transition(stringified, entry.column, action, entry.value()))
 
         actions.append(action_combo)
 
-    for tra in transitions:
-        print(vars(tra))
-
-    print(actions)
     return transitions, actions, stringifiedStates, goals
+
+def readFromPomdp(filename: str, label = None):
+    model = stormpy.parse_prism_program(filename)
+    mdp = stormpy.build_sparse_model(model)
+
+    matrix = mdp.transition_matrix
+    
+    transitions = []
+
+    states = mdp.states
+
+    stringifiedStates = []
+    goals = []
+    actions = [] #
+    observations = []
+
+    for index, s in enumerate(states):
+        stringified = f'{s}'
+        if label in s.labels:
+            goals.append(stringified)
+        stringifiedStates.append(stringified)
+
+        row_group_start = matrix.get_row_group_start(index)
+        row_group_end = matrix.get_row_group_end(index)
+
+        observation = mdp.get_observation(s.id)
+
+        action_combo = []
+        for i in range(row_group_start, row_group_end):
+            row = matrix.get_row(i)
+            action = f'{observation}_{i - row_group_start}'
+            action_combo.append(action)
+            for entry in row:
+                transitions.append(Transition(stringified, entry.column, action, entry.value()))
+
+        if observation not in observations:
+            actions.append(action_combo)
+            observations.append(observation)
+
+    return transitions, actions, stringifiedStates, goals
+
 
 def readFromParsedArgs():
     parser = argparse.ArgumentParser()
@@ -77,6 +110,7 @@ def readFromParsedArgs():
     parser.add_argument("-g", "--goal", required=False, help="The goal state")
     parser.add_argument("-n", "--steps", required=True, help="The maximum amount of steps to reach the goal states")
     parser.add_argument("-l", "--label", required=False, help="The label of the goal states. Only works with .pm files")
+    parser.add_argument("-p", "--pompd", action='store_true', help="Argument to indicate the input is a POMDP (Partially Observable)")
 
     args = parser.parse_args()
     inputFile = args.input
@@ -86,11 +120,13 @@ def readFromParsedArgs():
 
     #_, extension = os.path.splitext(inputFile)
     
-    transitions, actions, states, goals = readFromMdp(inputFile, args.label)
+    if args.pompd:
+        transitions, actions, states, goals = readFromPomdp(inputFile, args.label)
+    else:
+        transitions, actions, states, goals = readFromMdp(inputFile, args.label)
     
     if args.goal:
         goals = [args.goal]
 
     return Chain(transitions, actions, states, startState, goals, N, outputFile)
     
-readFromParsedArgs()

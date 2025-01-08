@@ -9,6 +9,7 @@ import math
 
 import stormpy
 from import_transitions import readFromParsedArgs, Transition, Chain
+import buildcnf
 
 
 # Variation of the memory version, instead only calculating the first step deriving the other steps through addition and multiplication.
@@ -139,11 +140,11 @@ def makeCNF(transitions: list[Transition], states, initialState, goalstates, out
     formula.extend(onlyStartClauses(states, initialState))
 
     #print(formula)
-    cnf = CNF(from_clauses=formula)
-    cnf.to_file(outputFile)
+    buildcnf.buildcnf(formula, (mapSize * steps) + len(states), outputFile)
     addWeights(transitions, outputFile, steps)
     #print(Formula.export_vpool().id2obj)
 
-#chain = readFromParsedArgs()
-#makeCNF(chain.transitions, chain.states, chain.start_state, chain.goal_states, chain.output_file, chain.steps)
+if __name__ == "__main__":
+    chain = readFromParsedArgs()
+    makeCNF(chain.transitions, chain.states, chain.start_state, chain.goal_states, chain.output_file, chain.steps)
 

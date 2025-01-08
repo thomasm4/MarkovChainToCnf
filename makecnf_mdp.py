@@ -9,6 +9,7 @@ import math
 
 import stormpy
 from import_mdp import readFromParsedArgs, Transition, Chain
+from buildcnf import buildcnf
 
 
 # Variation of the multiplication algorithm for MDPs
@@ -16,6 +17,7 @@ from import_mdp import readFromParsedArgs, Transition, Chain
 atomMap : dict
 mapSize : int
 actionStart : int # variable to show were the actions start counting (mapsize*(steps) + len(states) + 1)
+actionMap : dict
 def fillMap(transitions, states):
     global mapSize, atomMap
     atomMap = dict()
@@ -28,6 +30,16 @@ def fillMap(transitions, states):
         i += 1
     mapSize = i - 1
 
+def fillActionMap(actions):
+    global actionMap
+    actionMap = dict()
+    i = 0
+    for actionCombo in actions:
+        for action in actionCombo:
+            actionMap[action] = i
+            i += 1
+
+
 def getState(state, step) -> int:
     return atomMap[state] + (step*mapSize)
 
@@ -35,7 +47,7 @@ def getTransition(transition, step) -> int:
     return atomMap[f'{transition.start}_{transition.end}_{transition.action}'] + (step*mapSize)
 
 def getAction(action) -> int:
-    return actionStart + action
+    return actionStart + actionMap[action]
 
 def generateIffFormula(trans: list[Transition], states, s: int = 1):
     clauses = []
@@ -131,16 +143,18 @@ def addWeights(transitions: list[Transition], file, steps: int = 1):
             file.write(f'c p weight -{name} 1 0\n')
 
 def addProjection(actions, file):
-    file.write(f'c p max {" ".join(str(getAction(a)) for actionCombo in actions for a in actionCombo)} 0\n')
-    #file.write(f'c p show {" ".join(str(x) for x in range(actionStart))} 0\n')
+    file.write(f'c max {" ".join(str(getAction(a)) for actionCombo in actions for a in actionCombo)} 0\n')
+    file.write(f'c ind {" ".join(str(x) for x in range(1, actionStart))} 0\n')
 
 def makeCNF(transitions: list[Transition], actions, states, initialState, goalstates, outputFile, steps: int = 1):
     global actionStart
 
     fillMap(transitions, states)
     actionStart = (mapSize*(steps)) + len(states) + 1
+    fillActionMap(actions)
 
-    print(atomMap)
+    print(actions)
+    
 
     formula1 = []
     formula1.extend(generateIffFormula(transitions, states, 0))
@@ -148,7 +162,9 @@ def makeCNF(transitions: list[Transition], actions, states, initialState, goalst
     formula1.extend(transExclusionClauses(transitions, 0))
     formula1.extend(oneTransClauses(transitions, states, 0))
     formula = formula1.copy()
+    print("start multi")
     for s in range(1, steps):
+        print(s)
         for clause in formula1:
             formula.append([x + int(math.copysign(s*mapSize, x)) for x in clause])
     
@@ -158,15 +174,22 @@ def makeCNF(transitions: list[Transition], actions, states, initialState, goalst
     formula.extend(actionExclusiveOr(actions))
 
     #print(formula)
-    cnf = CNF(from_clauses=formula)
-    cnf.to_file(outputFile)
+    #cnf = CNF(from_clauses=formula)
+    #cnf.to_file(outputFile)
+    #file = open(outputFile, "w")
+
+    buildcnf(formula, (mapSize * steps) + len(states) + len(actionMap), outputFile)
+    print("built cnf")
 
     file = open(outputFile, "a")
     addWeights(transitions, file, steps)
     addProjection(actions, file)
+    print(actionStart)
+    print(actionMap)
     #print(Formula.export_vpool().id2obj)
 
-chain = readFromParsedArgs()
 
-makeCNF(chain.transitions, chain.actions, chain.states, chain.start_state, chain.goal_states, chain.output_file, chain.steps)
+if __name__ == "__main__":
+    chain = readFromParsedArgs()
+    makeCNF(chain.transitions, chain.actions, chain.states, chain.start_state, chain.goal_states, chain.output_file, chain.steps)
 

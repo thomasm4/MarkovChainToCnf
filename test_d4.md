@@ -1,0 +1,67 @@
+```mermaid
+	graph TD
+        subgraph pad1 [ ]
+            subgraph pad2 [ ]
+                subgraph legend[Legend]
+                    nodes("<font color=white> Node Type <font color=cyan> Node Number <font color=greeny> Count <font color=red> Temp Count <font color=orange> Query []")
+                    style legend fill:none, stroke:none
+                end
+                style pad2 fill:none, stroke:none
+            end
+            style pad1 fill:none, stroke:none
+        end
+        classDef marked stroke:#d90000, stroke-width:4px
+
+		51("∧ <font color=cyan>51 <font color=greeny>3 <font color=red>3") --> 50;
+		50("∨ <font color=cyan>50 <font color=greeny>3 <font color=red>3") --> 49;
+		49("∧ <font color=cyan>49 <font color=greeny>3 <font color=red>3") --> 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 & 14 & 13 & 12 & 11 & 10 & 9 & 8 & 7 & 6 & 5 & 4 & 3 & 2 & 1 & 0 & 48;
+		48("∨ <font color=cyan>48 <font color=greeny>3 <font color=red>3") --> 47 & 40;
+		47("∧ <font color=cyan>47 <font color=greeny>1 <font color=red>1") --> 32 & 46 & 36 & 30 & 34 & 45 & 44 & 43 & 42 & 41;
+		46("L31 <font color=cyan>46 <font color=greeny>1 <font color=red>1");
+		45("L23 <font color=cyan>45 <font color=greeny>1 <font color=red>1");
+		44("¬L17 <font color=cyan>44 <font color=greeny>1 <font color=red>1");
+		43("L16 <font color=cyan>43 <font color=greeny>1 <font color=red>1");
+		42("¬L7 <font color=cyan>42 <font color=greeny>1 <font color=red>1");
+		41("L6 <font color=cyan>41 <font color=greeny>1 <font color=red>1");
+		40("∧ <font color=cyan>40 <font color=greeny>2 <font color=red>2") --> 28 & 27 & 26 & 25 & 24 & 23 & 39;
+		39("∨ <font color=cyan>39 <font color=greeny>2 <font color=red>2") --> 38 & 33;
+		38("∧ <font color=cyan>38 <font color=greeny>1 <font color=red>1") --> 37 & 36 & 35 & 34;
+		37("L32 <font color=cyan>37 <font color=greeny>1 <font color=red>1");
+		36("¬L29 <font color=cyan>36 <font color=greeny>1 <font color=red>1");
+		35("L25 <font color=cyan>35 <font color=greeny>1 <font color=red>1");
+		34("¬L24 <font color=cyan>34 <font color=greeny>1 <font color=red>1");
+		33("∧ <font color=cyan>33 <font color=greeny>1 <font color=red>1") --> 32 & 31 & 30 & 29;
+		32("¬L32 <font color=cyan>32 <font color=greeny>1 <font color=red>1");
+		31("L29 <font color=cyan>31 <font color=greeny>1 <font color=red>1");
+		30("¬L25 <font color=cyan>30 <font color=greeny>1 <font color=red>1");
+		29("L24 <font color=cyan>29 <font color=greeny>1 <font color=red>1");
+		28("¬L31 <font color=cyan>28 <font color=greeny>1 <font color=red>1");
+		27("¬L23 <font color=cyan>27 <font color=greeny>1 <font color=red>1");
+		26("L17 <font color=cyan>26 <font color=greeny>1 <font color=red>1");
+		25("¬L16 <font color=cyan>25 <font color=greeny>1 <font color=red>1");
+		24("L7 <font color=cyan>24 <font color=greeny>1 <font color=red>1");
+		23("¬L6 <font color=cyan>23 <font color=greeny>1 <font color=red>1");
+		22("¬L33 <font color=cyan>22 <font color=greeny>1 <font color=red>1");
+		21("¬L30 <font color=cyan>21 <font color=greeny>1 <font color=red>1");
+		20("¬L28 <font color=cyan>20 <font color=greeny>1 <font color=red>1");
+		19("¬L27 <font color=cyan>19 <font color=greeny>1 <font color=red>1");
+		18("¬L26 <font color=cyan>18 <font color=greeny>1 <font color=red>1");
+		17("¬L22 <font color=cyan>17 <font color=greeny>1 <font color=red>1");
+		16("¬L21 <font color=cyan>16 <font color=greeny>1 <font color=red>1");
+		15("¬L20 <font color=cyan>15 <font color=greeny>1 <font color=red>1");
+		14("¬L19 <font color=cyan>14 <font color=greeny>1 <font color=red>1");
+		13("¬L18 <font color=cyan>13 <font color=greeny>1 <font color=red>1");
+		12("¬L15 <font color=cyan>12 <font color=greeny>1 <font color=red>1");
+		11("¬L14 <font color=cyan>11 <font color=greeny>1 <font color=red>1");
+		10("¬L13 <font color=cyan>10 <font color=greeny>1 <font color=red>1");
+		9("¬L12 <font color=cyan>9 <font color=greeny>1 <font color=red>1");
+		8("¬L11 <font color=cyan>8 <font color=greeny>1 <font color=red>1");
+		7("¬L10 <font color=cyan>7 <font color=greeny>1 <font color=red>1");
+		6("¬L9 <font color=cyan>6 <font color=greeny>1 <font color=red>1");
+		5("¬L8 <font color=cyan>5 <font color=greeny>1 <font color=red>1");
+		4("¬L5 <font color=cyan>4 <font color=greeny>1 <font color=red>1");
+		3("¬L4 <font color=cyan>3 <font color=greeny>1 <font color=red>1");
+		2("¬L3 <font color=cyan>2 <font color=greeny>1 <font color=red>1");
+		1("¬L2 <font color=cyan>1 <font color=greeny>1 <font color=red>1");
+		0("L1 <font color=cyan>0 <font color=greeny>1 <font color=red>1");
+```

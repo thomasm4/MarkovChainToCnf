@@ -125,6 +125,7 @@ def makeCNF(transitions: list[Transition], states, initialState, goalstates, out
     
     buildcnf.buildcnf(formula, (mapSize * steps) + len(states), outputFile)
     addWeights(transitions, outputFile, steps)
+    #print(atomMap)
     #print(Formula.export_vpool().id2obj)
 
 if __name__ == "__main__":

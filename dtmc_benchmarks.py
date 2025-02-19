@@ -75,6 +75,12 @@ def runFile(filename, target, n):
     sharpsat_output_old, sharp_creation_old, sharp_solved_old, sharp_total_old = runSharpSAT(filename, target, n, old_order)
     print("sharp new")
     sharpsat_output_new, sharp_creation_new, sharp_solved_new, sharp_total_new = runSharpSAT(filename, target, n, new_order)
+    
+    if storm_output == gpmc_output_old == gpmc_output_new == sharpsat_output_old == sharpsat_output_new:
+        print("Correct output")
+    else:
+        print("Warning: Incorrect output----------------------------------------------------------------------------------------------")
+    
     print("Method, Output, Duration, Cnf creation, Cnf solution\n")
     print(f'Storm, {storm_output}, {storm_duration}\n')
     print(f'GPMC old, {gpmc_output_old}, {gpmc_total_old}, {gpmc_creation_old}, {gpmc_solved_old}\n')

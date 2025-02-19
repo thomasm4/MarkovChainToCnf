@@ -162,9 +162,9 @@ def makeCNF(transitions: list[Transition], actions, states, initialState, goalst
     formula1.extend(transExclusionClauses(transitions, 0))
     formula1.extend(oneTransClauses(transitions, states, 0))
     formula = formula1.copy()
-    print("start multi")
+    #print("start multi")
     for s in range(1, steps):
-        print(s)
+        #print(s)
         for clause in formula1:
             formula.append([x + int(math.copysign(s*mapSize, x)) for x in clause])
     
@@ -186,6 +186,7 @@ def makeCNF(transitions: list[Transition], actions, states, initialState, goalst
     addProjection(actions, file)
     print(actionStart)
     print(actionMap)
+    print(atomMap)
     #print(Formula.export_vpool().id2obj)
 
 

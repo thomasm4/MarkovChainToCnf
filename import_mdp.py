@@ -16,7 +16,7 @@ class Transition:
 
 @dataclasses.dataclass
 class Chain:
-    def __init__(self, transitions, actions, states, start_state, goal_states, steps, output_file):
+    def __init__(self, transitions, actions, states, start_state, goal_states, steps, output_file, avoids = None):
         self.transitions = transitions
         self.actions = actions # a list of lists containing the actions that belong with each other and should be unique
         self.states = states
@@ -24,6 +24,7 @@ class Chain:
         self.goal_states = goal_states
         self.steps = steps
         self.output_file = output_file
+        self.avoids = avoids
 
 
 def readFromMdp(filename: str, label = None):
@@ -61,7 +62,7 @@ def readFromMdp(filename: str, label = None):
 
     return transitions, actions, stringifiedStates, goals
 
-def readFromPomdp(filename: str, label = None):
+def readFromPomdp(filename: str, label = None, avoid = None):
     model = stormpy.parse_prism_program(filename)
     mdp = stormpy.build_sparse_model(model)
 
@@ -73,6 +74,7 @@ def readFromPomdp(filename: str, label = None):
 
     stringifiedStates = []
     goals = []
+    avoids = []
     actions = [] #
     observations = []
 
@@ -80,6 +82,8 @@ def readFromPomdp(filename: str, label = None):
         stringified = f'{s}'
         if label in s.labels:
             goals.append(stringified)
+        if avoid in s.labels:
+            avoids.append(stringified)
         stringifiedStates.append(stringified)
 
         row_group_start = matrix.get_row_group_start(index)
@@ -99,7 +103,7 @@ def readFromPomdp(filename: str, label = None):
             actions.append(action_combo)
             observations.append(observation)
 
-    return transitions, actions, stringifiedStates, goals
+    return transitions, actions, stringifiedStates, goals, avoids
 
 
 def readFromParsedArgs():
@@ -109,8 +113,9 @@ def readFromParsedArgs():
     parser.add_argument("-s", "--start", required=True, help="The initial state")
     parser.add_argument("-g", "--goal", required=False, help="The goal state")
     parser.add_argument("-n", "--steps", required=True, help="The maximum amount of steps to reach the goal states")
-    parser.add_argument("-l", "--label", required=False, help="The label of the goal states. Only works with .pm files")
+    parser.add_argument("-l", "--label", required=False, help="The label of the goal states.")
     parser.add_argument("-p", "--pompd", action='store_true', help="Argument to indicate the input is a POMDP (Partially Observable)")
+    parser.add_argument("-a", "--avoid", required=False, help="The label of the avoid states. These states will are not allowed to be visited. Only implemented for POMDPS")
 
     args = parser.parse_args()
     inputFile = args.input
@@ -118,15 +123,21 @@ def readFromParsedArgs():
     startState = args.start
     N = int(args.steps)
 
+    avoid = args.avoid
+
     #_, extension = os.path.splitext(inputFile)
     
     if args.pompd:
-        transitions, actions, states, goals = readFromPomdp(inputFile, args.label)
+        transitions, actions, states, goals, avoids = readFromPomdp(inputFile, args.label, avoid)
     else:
+        avoids = None
         transitions, actions, states, goals = readFromMdp(inputFile, args.label)
     
     if args.goal:
         goals = [args.goal]
 
-    return Chain(transitions, actions, states, startState, goals, N, outputFile)
+    if avoid is None:
+        avoids = None
+
+    return Chain(transitions, actions, states, startState, goals, N, outputFile, avoids)
     

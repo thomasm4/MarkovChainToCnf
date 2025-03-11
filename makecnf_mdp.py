@@ -112,6 +112,13 @@ def goalClause(goalStates, steps: int):
             goals.append(getState(goal, s))
     return goals
 
+def avoidClauses(avoidStates, steps: int):
+    avoids = []
+    for avoid in avoidStates:
+        for s in range(steps+1):
+            avoids.append([-getState(avoid, s)])
+    return avoids
+
 # This function cannot be calculated through multiplication since the variables for actions are static and do not scale with s
 def transRequiresActionClause(trans: list[Transition], steps: int):
     clauses = []
@@ -146,7 +153,7 @@ def addProjection(actions, file):
     file.write(f'c max {" ".join(str(getAction(a)) for actionCombo in actions for a in actionCombo)} 0\n')
     file.write(f'c ind {" ".join(str(x) for x in range(1, actionStart))} 0\n')
 
-def makeCNF(transitions: list[Transition], actions, states, initialState, goalstates, outputFile, steps: int = 1):
+def makeCNF(transitions: list[Transition], actions, states, initialState, goalstates, outputFile, steps: int = 1, avoids = None):
     global actionStart
 
     fillMap(transitions, states)
@@ -170,6 +177,10 @@ def makeCNF(transitions: list[Transition], actions, states, initialState, goalst
     
     formula.extend(transRequiresActionClause(transitions, steps))
     formula.append(goalClause(goalstates, steps))
+
+    if avoids is not None:
+        formula.extend(avoidClauses(avoids, steps))
+
     formula.extend(onlyStartClauses(states, initialState))
     formula.extend(actionExclusiveOr(actions))
 
@@ -192,5 +203,5 @@ def makeCNF(transitions: list[Transition], actions, states, initialState, goalst
 
 if __name__ == "__main__":
     chain = readFromParsedArgs()
-    makeCNF(chain.transitions, chain.actions, chain.states, chain.start_state, chain.goal_states, chain.output_file, chain.steps)
+    makeCNF(chain.transitions, chain.actions, chain.states, chain.start_state, chain.goal_states, chain.output_file, chain.steps, chain.avoids)
 
